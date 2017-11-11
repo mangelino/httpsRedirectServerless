@@ -57,7 +57,7 @@ Resources:
     Type: AWS::Serverless::Api
   RedirectFunction:
     Properties:
-      CodeUri: s3://maan-serverless-app-bucket/httpsRedirect.zip
+      CodeUri: s3://mangelino-serverless-repo/httpsRedirect.zip
       Environment:
         Variables:
           URI: http://localhost:8082/code/
