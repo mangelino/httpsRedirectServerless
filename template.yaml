@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: A simple redirect proxy to handle https redirect endpoints when developing
+  SPA apps locally
+Outputs:
+  HTTPSRedirectEndpoint:
+    Description: The https endpoint url to use as redirect endpoint
+    Value:
+      Fn::Sub: https://${RedirectApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/
+Resources:
+  RedirectApi:
+    Properties:
+      DefinitionBody:
+        info:
+          title:
+            Ref: AWS::StackName
+          version: '2017-09-20T12:00:04Z'
+        paths:
+          /{proxy+}:
+            options:
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              responses:
+                '200':
+                  description: 200 response
+                  headers:
+                    Access-Control-Allow-Headers:
+                      type: string
+                    Access-Control-Allow-Methods:
+                      type: string
+                    Access-Control-Allow-Origin:
+                      type: string
+              x-amazon-apigateway-integration:
+                requestTemplates:
+                  application/json: "{\n  \"statusCode\" : 200\n}\n"
+                responses:
+                  default:
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Headers: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key'''
+                      method.response.header.Access-Control-Allow-Methods: '''*'''
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
+                    responseTemplates:
+                      application/json: "{ \n\n}\n"
+                    statusCode: '200'
+                type: mock
+            x-amazon-apigateway-any-method:
+              responses: {}
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                passthroughBehavior: when_no_match
+                type: aws_proxy
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RedirectFunction.Arn}/invocations
+        swagger: '2.0'
+      StageName: prod
+    Type: AWS::Serverless::Api
+  RedirectFunction:
+    Properties:
+      CodeUri: s3://maan-serverless-app-bucket/httpsRedirect.zip
+      Environment:
+        Variables:
+          URI: http://localhost:8082/code/
+      Events:
+        redirect:
+          Properties:
+            Method: ANY
+            Path: /
+            RestApiId:
+              Ref: RedirectApi
+          Type: Api
+      Handler: index.handler
+      Runtime: nodejs6.10
+    Type: AWS::Serverless::Function
+  RedirectFunctionPermission:
+    DependsOn:
+    - RedirectApi
+    - RedirectFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Ref: RedirectFunction
+      Principal: apigateway.amazonaws.com
+    Type: AWS::Lambda::Permission
+Transform: AWS::Serverless-2016-10-31
