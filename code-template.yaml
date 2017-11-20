@@ -6,7 +6,7 @@ Description:
 Outputs:
   HTTPSRedirectEndpoint:
     Description: The https endpoint url to use as redirect endpoint
-    Value: !Sub "https://${RedirectApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/"
+    Value: !Sub "https://${RedirectApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
 Resources:
   RedirectApi:
     Type: AWS::Serverless::Api
@@ -79,6 +79,8 @@ Resources:
       Handler: index.handler
       Runtime: nodejs6.10
       CodeUri: ./src
+      Policies:
+        - CloudWatchPutMetricPolicy: {}
       Environment:
         Variables:
           URI: "http://localhost:8082/code/"

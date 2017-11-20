@@ -5,7 +5,7 @@ Outputs:
   HTTPSRedirectEndpoint:
     Description: The https endpoint url to use as redirect endpoint
     Value:
-      Fn::Sub: https://${RedirectApi}.execute-api.${AWS::Region}.amazonaws.com/Stage/
+      Fn::Sub: https://${RedirectApi}.execute-api.${AWS::Region}.amazonaws.com/prod/
 Resources:
   RedirectApi:
     Properties:
@@ -57,7 +57,7 @@ Resources:
     Type: AWS::Serverless::Api
   RedirectFunction:
     Properties:
-      CodeUri: s3://mangelino-serverless-repo/httpsRedirect.zip
+      CodeUri: s3://<YOUR BUCKET>/httpsRedirect.zip
       Environment:
         Variables:
           URI: http://localhost:8082/code/
@@ -70,6 +70,8 @@ Resources:
               Ref: RedirectApi
           Type: Api
       Handler: index.handler
+      Policies:
+      - CloudWatchPutMetricPolicy: {}
       Runtime: nodejs6.10
     Type: AWS::Serverless::Function
   RedirectFunctionPermission:
