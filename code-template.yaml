@@ -79,8 +79,6 @@ Resources:
       Handler: index.handler
       Runtime: nodejs6.10
       CodeUri: ./src
-      Policies:
-        - CloudWatchPutMetricPolicy: {}
       Environment:
         Variables:
           URI: "http://localhost:8082/code/"
